@@ -3,6 +3,7 @@ import Link from "next/link";
 import { OverviewChart } from "@/components/charts/OverviewChart";
 import { StatCard } from "@/components/cards/StatCard";
 import { MapPreview } from "@/components/maps/MapPreview";
+import { NationalDashboard } from "@/components/national-dashboard";
 import { formatNumber } from "@/lib/utils";
 
 const STATISTICS = [
@@ -178,6 +179,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <NationalDashboard />
     </div>
   );
 }
