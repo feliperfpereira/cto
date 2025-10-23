@@ -1,0 +1,14 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.experimental.useFlatConfig": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.exclude": {
+    "**/.next": true,
+    "**/node_modules": true
+  },
+  "prettier.configPath": "./prettier.config.mjs"
+}
