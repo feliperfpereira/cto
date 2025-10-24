@@ -11,3 +11,8 @@ export const formatNumber = (value: number, options?: Intl.NumberFormatOptions) 
     ...options,
   }).format(value);
 };
+
+export const formatEnumLabel = (value: string) =>
+  value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());

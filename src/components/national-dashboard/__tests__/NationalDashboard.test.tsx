@@ -5,6 +5,8 @@ import { NationalDashboard } from "@/components/national-dashboard";
 import { nationDashboardInitialState, useNationDashboardStore } from "@/store/nation-dashboard-store";
 
 const resetNationStore = () => {
+  sessionStorage.clear();
+  useNationDashboardStore.persist?.clearStorage?.();
   act(() => {
     useNationDashboardStore.setState((state) => ({
       ...state,
