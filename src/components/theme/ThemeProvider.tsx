@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-import { useThemeStore, type ThemeMode } from "@/store/theme-store";
+import { THEME_STORAGE_KEY, useThemeStore, type ThemeMode } from "@/store/theme-store";
 
-const THEME_STORAGE_KEY = "worldforge:theme";
-
-const resolveInitialTheme = (): ThemeMode => {
+const getStoredTheme = (): ThemeMode | null => {
   if (typeof window === "undefined") {
-    return "light";
+    return null;
   }
 
   try {
@@ -16,45 +14,74 @@ const resolveInitialTheme = (): ThemeMode => {
     if (storedTheme === "light" || storedTheme === "dark") {
       return storedTheme;
     }
-  } catch (
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _error
-  ) {
-    // Access to localStorage can fail in private mode; ignore and fallback.
+  } catch {
+    // Ignore storage access issues (e.g. private browsing modes).
   }
 
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "dark" : "light";
+  return null;
+};
+
+const getSystemTheme = (): ThemeMode => {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
+
+const applyThemeToDocument = (theme: ThemeMode) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.style.setProperty("color-scheme", theme);
+  root.classList.toggle("dark", theme === "dark");
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
-  const markHydrated = useThemeStore((state) => state.markHydrated);
+  const hasHydrated = useThemeStore((state) => state.hasHydrated);
+  const setHasHydrated = useThemeStore((state) => state.setHasHydrated);
+  const hasResolvedInitialTheme = useRef(false);
 
   useEffect(() => {
-    const initialTheme = resolveInitialTheme();
-    setTheme(initialTheme);
-    markHydrated();
-  }, [markHydrated, setTheme]);
+    const rehydrate = async () => {
+      try {
+        await useThemeStore.persist.rehydrate();
+      } finally {
+        if (!useThemeStore.getState().hasHydrated) {
+          setHasHydrated(true);
+        }
+      }
+    };
+
+    void rehydrate();
+  }, [setHasHydrated]);
 
   useEffect(() => {
-    if (typeof document === "undefined" || typeof window === "undefined") {
+    if (!hasHydrated) {
       return;
     }
 
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.setProperty("color-scheme", theme);
+    let targetTheme = theme;
 
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch (
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      _error
-    ) {
-      // Ignore write failures (e.g., Safari private mode).
+    if (!hasResolvedInitialTheme.current) {
+      const storedTheme = getStoredTheme();
+      const resolvedTheme = storedTheme ?? getSystemTheme();
+
+      hasResolvedInitialTheme.current = true;
+      targetTheme = resolvedTheme;
+
+      if (resolvedTheme !== theme) {
+        setTheme(resolvedTheme);
+      }
     }
-  }, [theme]);
+
+    applyThemeToDocument(targetTheme);
+  }, [hasHydrated, setTheme, theme]);
 
   return <>{children}</>;
 }

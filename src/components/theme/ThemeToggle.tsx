@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useTheme } from "@/hooks/useTheme";
 
@@ -48,6 +48,14 @@ const MoonIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function ThemeToggle() {
   const { theme, hasHydrated, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    if (!hasHydrated || typeof document === "undefined") {
+      return;
+    }
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [hasHydrated, theme]);
 
   const icon = useMemo(() => (theme === "light" ? <MoonIcon /> : <SunIcon />), [theme]);
 
