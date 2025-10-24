@@ -8,9 +8,10 @@ interface UseThemeResult {
   hasHydrated: boolean;
 }
 
-export const useTheme = (): UseThemeResult =>
-  useThemeStore((state) => ({
-    theme: state.theme,
-    toggleTheme: state.toggleTheme,
-    hasHydrated: state.hasHydrated,
-  }));
+export const useTheme = (): UseThemeResult => {
+  const theme = useThemeStore((state) => state.theme);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  const hasHydrated = useThemeStore((state) => state.hasHydrated);
+
+  return { theme, toggleTheme, hasHydrated };
+};

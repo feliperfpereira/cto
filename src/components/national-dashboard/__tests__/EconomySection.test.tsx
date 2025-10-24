@@ -11,6 +11,8 @@ describe("EconomySection", () => {
 
     render(<EconomySection economy={nation.economy} metrics={metrics} lastUpdated={nation.lastUpdated} />);
 
+    expect(screen.getByText("Last refreshed Jan 01, 2024")).toBeInTheDocument();
+
     const values = screen
       .getAllByRole("definition")
       .map((definition) => definition.textContent?.replace(/\s+/g, " ").trim());

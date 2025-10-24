@@ -24,6 +24,23 @@ const formatCurrency = (value: number, currency: string, options?: Intl.NumberFo
 const formatPercentage = (value: number, fractionDigits = 1) =>
   `${value.toFixed(fractionDigits)}%`;
 
+const lastUpdatedFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+  month: "short",
+  day: "2-digit",
+  year: "numeric",
+});
+
+const formatLastUpdatedLabel = (value: string) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return lastUpdatedFormatter.format(date);
+};
+
 interface EconomySectionProps {
   economy: Nation["economy"];
   metrics: NationMetrics;
@@ -48,6 +65,7 @@ export function EconomySection({ economy, metrics, lastUpdated }: EconomySection
       };
     });
   }, [economy.gdp, economy.gdpGrowthRate]);
+  const lastUpdatedLabel = useMemo(() => formatLastUpdatedLabel(lastUpdated), [lastUpdated]);
 
   const metricItems = [
     {
@@ -97,9 +115,7 @@ export function EconomySection({ economy, metrics, lastUpdated }: EconomySection
         <h3 id="economy-section-title" className="text-2xl font-semibold">
           Economic performance
         </h3>
-        <p className="text-xs text-[rgb(var(--color-muted))]">
-          Last refreshed {new Date(lastUpdated).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-        </p>
+        <p className="text-xs text-[rgb(var(--color-muted))]">Last refreshed {lastUpdatedLabel}</p>
       </header>
 
       <div className="h-56">
