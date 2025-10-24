@@ -1,11 +1,12 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 import { NATIONS } from "@/data";
 import type { Nation } from "@/types/nation";
 
 export type DashboardStatus = "idle" | "loading" | "ready" | "error";
 
-interface NationDashboardState {
+export interface NationDashboardState {
   nations: Nation[];
   selectedNationCode?: string;
   status: DashboardStatus;
@@ -27,32 +28,52 @@ export const nationDashboardInitialState: Pick<
   status: defaultNations.length ? "ready" : "idle",
 };
 
-export const useNationDashboardStore = create<NationDashboardState>((set, get) => ({
-  ...nationDashboardInitialState,
-  selectNation: (code) =>
-    set((state) => {
-      const exists = state.nations.some((nation) => nation.code === code);
+const storage =
+  typeof window !== "undefined"
+    ? createJSONStorage<NationDashboardState>(() => window.sessionStorage)
+    : undefined;
 
-      if (!exists) {
-        return { selectedNationCode: undefined, status: "idle" } satisfies Partial<NationDashboardState>;
-      }
+export const useNationDashboardStore = create<NationDashboardState>()(
+  persist(
+    (set, get) => ({
+      ...nationDashboardInitialState,
+      selectNation: (code) =>
+        set((state) => {
+          const exists = state.nations.some((nation) => nation.code === code);
 
-      return { selectedNationCode: code, status: "ready" } satisfies Partial<NationDashboardState>;
+          if (!exists) {
+            return { selectedNationCode: undefined, status: "idle" } satisfies Partial<NationDashboardState>;
+          }
+
+          return { selectedNationCode: code, status: "ready" } satisfies Partial<NationDashboardState>;
+        }),
+      clearSelection: () => set({ selectedNationCode: undefined, status: "idle" }),
+      setStatus: (status) => set({ status }),
+      setNations: (nations) =>
+        set((state) => {
+          const hasExistingSelection =
+            state.selectedNationCode &&
+            nations.some((nation) => nation.code === state.selectedNationCode);
+          const nextSelection = hasExistingSelection ? state.selectedNationCode : nations[0]?.code;
+
+          return {
+            nations,
+            selectedNationCode: nextSelection,
+            status: nations.length ? "ready" : "idle",
+          } satisfies Partial<NationDashboardState>;
+        }),
+      getSelectedNation: () => {
+        const { nations, selectedNationCode } = get();
+        if (!selectedNationCode) {
+          return undefined;
+        }
+
+        return nations.find((nation) => nation.code === selectedNationCode);
+      },
     }),
-  clearSelection: () => set({ selectedNationCode: undefined, status: "idle" }),
-  setStatus: (status) => set({ status }),
-  setNations: (nations) =>
-    set(() => ({
-      nations,
-      selectedNationCode: nations[0]?.code,
-      status: nations.length ? "ready" : "idle",
-    })),
-  getSelectedNation: () => {
-    const { nations, selectedNationCode } = get();
-    if (!selectedNationCode) {
-      return undefined;
-    }
-
-    return nations.find((nation) => nation.code === selectedNationCode);
-  },
-}));
+    {
+      name: "nation-dashboard",
+      storage,
+    },
+  ),
+);

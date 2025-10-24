@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatEnumLabel, formatNumber } from "@/lib/utils";
 import { computeNationMetrics } from "@/lib/nation-utils";
 import type { Nation } from "@/types/nation";
 import { useNationDashboardStore } from "@/store/nation-dashboard-store";
@@ -16,11 +16,6 @@ import { MilitarySection } from "./MilitarySection";
 type NationalDashboardProps = {
   className?: string;
 };
-
-const formatEnumLabel = (value: string) =>
-  value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 
 interface NationSelectProps {
   nations: Nation[];

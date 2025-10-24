@@ -6,6 +6,15 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/",
   },
   {
+    label: "Launch",
+    href: "/launch",
+    badge: "New",
+  },
+  {
+    label: "Command Deck",
+    href: "/command",
+  },
+  {
     label: "Geospatial AI",
     href: "/geospatial",
     badge: "Soon",
